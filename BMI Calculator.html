@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BMI Calculator</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+            crossorigin="anonymous"></script>
+
+    <script type="application/javascript">
+        const student_array = []
+
+        function clearText() {
+            document.getElementById('alert_name').innerText = "";
+            document.getElementById('alert_height_ft').innerText = "";
+            document.getElementById('alert_height_in').innerText = "";
+            document.getElementById('alert_weight').innerText = "";
+        }
+
+        function addStudent() {
+            clearText();
+            let height_ft = 0;
+            let height_in = 0;
+            let weight = 0;
+            const student_height_ft_input = document.getElementById('student_height_ft').value
+            const student_height_in_input = document.getElementById('student_height_in').value
+            const student_weight_input = document.getElementById('student_weight').value
+            if (student_weight_input.length > 0) {
+                weight = parseInt(student_weight_input);
+                console.log(weight);
+            }
+            if (student_height_ft_input.length > 0) {
+                height_ft = parseInt(student_height_ft_input);
+                console.log(height_ft);
+            }
+            if (student_height_in_input.length > 0) {
+                height_in = parseInt(student_height_in_input);
+                console.log(height_in);
+            }
+
+            let total_height = calcHeight(height_ft, height_in)
+            let bmi = calcBMI(weight, height_ft, height_in);
+
+            const newStudent = {
+                "name": document.getElementById('student_name').value,
+                "year": document.getElementById('student_year').value,
+                "height_ft": height_ft,
+                "height_in": height_in,
+                "weight": weight,
+                "bmi": bmi,
+                "height": total_height,
+            }
+
+            if(newStudent.name === "") {
+                document.getElementById('alert_name').innerText =
+                    "Must enter a student name"
+                return;
+            }
+            if(newStudent.height_ft <= 0 || isNaN(newStudent.height_ft)) {
+                document.getElementById('alert_height_ft').innerText =
+                    "Height in feet must be an integer and greater than 0"
+                return;
+            }
+            if(newStudent.height_in < 0 || newStudent.height_in > 12 || isNaN(newStudent.height_in)) {
+                document.getElementById('alert_height_in').innerText =
+                    "Height in inches must be an integer greater than 0 and less than 12"
+                return;
+            }
+            if(newStudent.weight <= 50) {
+                document.getElementById('alert_weight').innerText =
+                    "Weight must at least 50 lbs"
+            }
+
+            student_array.push(newStudent);
+            console.log(student_array);
+            showList(total_height)
+        }
+
+
+        function showList() {
+            if (student_array.length > 0) {
+                const student_ulist = document.getElementById('student_list');
+                student_ulist.innerHTML = ""
+                let average = calcAverageBMI();
+                document.getElementById('average_bmi').innerText = average.toString();
+                if(document.getElementById('year').checked) {
+                    student_array.sort((a, b) =>{
+                        return a.year - b.year;
+                    })
+                }
+                if(document.getElementById('height').checked) {
+                    student_array.sort((a, b) =>{
+                        return b.height - a.height;
+                    })
+                }
+                if(document.getElementById('bmi').checked) {
+                    student_array.sort((a, b) =>{
+                        return a.bmi - b.bmi;
+                    })
+                }
+
+                for (const student of student_array) {
+                    console.log(item2string(student));
+                }
+
+                student_array.forEach(student => {
+                    const li = document.createElement("li");
+                    li.innerText = item2string(student);
+                    li.className = "list-group-item";
+                    student_ulist.appendChild(li);
+                })
+            }
+        }
+
+        function item2string(student) {
+            return student.name + " " + student.weight + "lbs " + student.height_ft + "ft " + student.height_in + "in "
+            + "BMI: " + student.bmi + " " + year2string(student.year)
+
+        }
+
+        function year2string(year) {
+            if (year === "1") {
+                return "Freshman"
+            } else if (year === "2") {
+                return "Sophomore"
+            } else if (year === "3") {
+                return "Junior"
+            } else if (year === "4") {
+                return "Senior"
+            }
+        }
+
+
+        function calcBMI(w, h_ft, h_in) {
+            let height_total = calcHeight(h_ft, h_in);
+            const bmi = ((w / (height_total**2)) * 703);
+            return Math.round(bmi * 10) / 10;
+        }
+
+        function calcHeight(h_ft, h_in) {
+            let ft_to_in = h_ft * 12;
+            return ft_to_in + h_in;
+        }
+
+        function calcAverageBMI() {
+            let total_bmi = 0;
+            let num_students = 0;
+            for (let i = 0; i < student_array.length; i++){
+                total_bmi += student_array[i].bmi;
+                num_students++;
+            }
+            let average_bmi = total_bmi/num_students;
+            return Math.round(average_bmi * 10) / 10;
+        }
+
+
+    </script>
+
+</head>
+<body class="container">
+
+<br>
+
+<section>
+    <form id="input_form">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <label for="student_name" class="form-label">Name: </label>
+                <input placeholder="Student Name" type="text" name="name" value="" id="student_name"
+                       class="form-control">
+                <label id="alert_name" style="color: red;"></label>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <label for="student_year" class="form-label">Student Year: </label>
+                <select name="year" id="student_year" class="form-select">
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2 col-md-4 col-sm-12">
+                <label for="student_height_ft" class="form-label">Height: </label>
+                <input placeholder="ft" type="text" name="feet" value="" id="student_height_ft" class="form-control">
+                <label id="alert_height_ft" style="color: red;"></label>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-12">
+                <input placeholder="in" type="text" name="feet" value="" id="student_height_in" class="form-control"
+                       style="margin-top: 32px;">
+                <label id="alert_height_in" style="color: red;"></label>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-12">
+                <label for="student_weight" class="form-label">Weight: </label>
+                <input placeholder="Weight" type="text" name="feet" value="" id="student_weight" class="form-control">
+                <label id="alert_weight" style="color: red;"></label>
+            </div>
+        </div>
+        <div class="row">
+            <div style="margin-top: 1rem;" class="d-flex justify-content-left">
+                <input type="button" value="Add" class="btn btn-primary col-lg-5 col-md-12 col-sm-12" onclick="addStudent()">
+            </div>
+        </div>
+    </form>
+</section>
+
+<section id="show_item_list">
+    <div class="justify-content-left" style="font-size: x-large; margin:1% 5%">
+        <div class="d-flex justify-content-between">
+            <div>Student List</div>
+            <div>
+                <label class="form-label">Sort by</label>
+                <input class="form-check-input" type="radio" id="year"
+                       name="sort-by" value="year" checked="checked" onclick="showList()">
+                <label class="form-label" for="year">Year</label>
+
+                <input class="form-check-input" type="radio" id="height"
+                       name="sort-by" value="height" checked="checked" onclick="showList()">
+                <label class="form-label" for="height">Height</label>
+
+                <input class="form-check-input" type="radio" id="bmi"
+                       name="sort-by" value="bmi" checked="checked" onclick="showList()">
+                <label class="form-label" for="bmi">BMI</label>
+            </div>
+        </div>
+        <ul id="student_list" class="list-group">
+            <li class="list-group-item">items show here</li>
+        </ul>
+    </div>
+</section>
+
+<section id="cal_bmi">
+    <div class="justify-content-left" style="font-size: x-large; margin:1% 5%">
+        <p>BMI Average:&nbsp;</p>
+        <p id="average_bmi">0</p>
+    </div>
+</section>
+
+</body>
+</html>
